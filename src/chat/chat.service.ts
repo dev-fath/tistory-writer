@@ -23,7 +23,7 @@ export class ChatService {
     chatUserName: string,
   ): Promise<ChatCompletionResponseMessage> {
     try {
-      const realPrompt = `Please write a blog post about ${prompt} in detail. title is "${prompt}". There should be made up with introduction, body made up with 5 subtopics, conclusion. each subtopics must more than 500 words. response in korean and it made up with html.  If you have any questions related to programming, your answer must have example code with <pre><code> tags. Please write a answer with a new line in the same format as "abc\\n" + "def"`;
+      const realPrompt = `Please write a blog post about ${prompt} in detail. title is "${prompt}". There should be made up with introduction, body made up at least 5 or 10 subtopics, conclusion. each subtopics must more than 500 words. response in korean and it made up with html.  If you have any questions related to programming, your answer must have example code with <pre><code> tags. Please write a answer with a new line in the same format as "abc\\n" + "def"`;
 
       const completion = await this.openai.createChatCompletion({
         messages: [
