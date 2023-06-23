@@ -18,6 +18,7 @@ interface ChatResponseDTO {
 
 @Injectable()
 export class ChatService {
+  private readonly GPT_MODEL = 'gpt-3.5-turbo-16k-0613';
   private readonly logger = new Logger(ChatService.name);
   private openai: OpenAIApi;
   constructor(
@@ -36,7 +37,9 @@ export class ChatService {
     chatUserName: string,
   ): Promise<ChatResponseDTO> {
     try {
-      const translatedPrompt = this.translateService.korean2English(prompt);
+      const translatedPrompt = await this.translateService.korean2English(
+        prompt,
+      );
       const realPrompt = `Please write a blog post about ${translatedPrompt} in detail. title is "${prompt}". There should be made up with introduction, body that made up with 5 or 10 subtopics, conclusion. the post must be made up with more than 1500 words. If your response has any questions related to programming, your answer must have example code with <pre><code> tags. Please write a answer with a new line in the same format as "abc\\n" + "def"`;
 
       const messages: ChatCompletionRequestMessage[] = [
@@ -49,7 +52,8 @@ export class ChatService {
       ];
       const completion = await this.openai.createChatCompletion({
         messages: messages,
-        model: 'gpt-3.5-turbo-0613',
+        // model: 'gpt-3.5-turbo-0613',
+        model: this.GPT_MODEL,
         temperature: 0,
       });
 
@@ -60,7 +64,8 @@ export class ChatService {
       });
       const translated = await this.openai.createChatCompletion({
         messages: messages,
-        model: 'gpt-3.5-turbo-0613',
+        // model: 'gpt-3.5-turbo-0613',
+        model: this.GPT_MODEL,
         temperature: 0,
       });
 
@@ -83,6 +88,7 @@ export class ChatService {
       return contents;
     } catch (error) {
       this.logger.error(error);
+      throw error;
     }
   }
 
@@ -101,7 +107,8 @@ export class ChatService {
             name: 'system',
           },
         ],
-        model: 'gpt-3.5-turbo-0613',
+        //q model: 'gpt-3.5-turbo-0613',
+        model: this.GPT_MODEL,
         temperature: 1,
       });
 
