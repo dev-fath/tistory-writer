@@ -4,7 +4,6 @@ import { DrawingService } from '../drawing/drawing.service';
 import { format } from 'date-fns';
 import { ConfigService } from '@nestjs/config';
 import { CategoryEnum, CategoryType } from './category';
-import * as fs from 'fs';
 import axios from 'axios';
 import { AttachImageResponse } from './dto/attach-image.dto';
 import { XMLParser } from 'fast-xml-parser';
@@ -43,30 +42,12 @@ export class WriteService {
           title,
           'me',
         );
-        let contents: {
-          title: string;
-          tag: string;
-          content: string;
-          titleEn: string;
-        } = {
-          titleEn: title,
-          tag: '',
-          title: title,
-          content: createdContents.content,
-        };
-        try {
-          contents = JSON.parse(createdContents.content);
-        } catch (e) {
-          console.log(e);
-          fs.writeFileSync(`./${contents.title}.json`, createdContents.content);
-          // return new Promise<null>(null);
-        }
         let imageTag = '';
 
-        if (contents.titleEn) {
+        if (createdContents.titleEn) {
           try {
             const createdImage = await this.drawService.createImage(
-              contents.titleEn,
+              createdContents.titleEn,
             );
 
             const {
@@ -91,9 +72,9 @@ export class WriteService {
           visibility: this.configService.get<number>('POST_VISIBLE'),
           category: CategoryEnum[category] ?? 0,
           published: time,
-          title: contents.title,
-          tag: contents.tag,
-          content: `${imageTag} ${contents.content}`,
+          title: createdContents.title,
+          tag: createdContents.tag,
+          content: `${imageTag} ${createdContents.content}`,
         };
 
         await axios.post('https://www.tistory.com/apis/post/write', param);

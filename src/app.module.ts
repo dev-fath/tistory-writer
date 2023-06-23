@@ -7,6 +7,7 @@ import { WriteModule } from './write/write.module';
 import { ChatModule } from './chat/chat.module';
 import { DrawingModule } from './drawing/drawing.module';
 import { SubjectModule } from './subject/subject.module';
+import { TranslateModule } from './translate/translate.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SubjectModule } from './subject/subject.module';
     ChatModule,
     DrawingModule,
     SubjectModule,
+    TranslateModule,
   ],
   controllers: [AppController],
   providers: [AppService],
