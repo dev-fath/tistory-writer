@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ChatService } from '../chat/chat.service';
 import { DrawingService } from '../drawing/drawing.service';
-import { format } from 'date-fns';
 import { ConfigService } from '@nestjs/config';
 import { CategoryEnum, CategoryType } from './category';
 import axios from 'axios';
@@ -26,16 +25,13 @@ export class WriteService {
     );
     const hour = 1000 * 60 * 60;
 
-    let time = '';
+    let time = 0;
 
     let i = 0;
 
     return await Promise.all(
       subjectList.map(async ({ title }) => {
-        time = format(
-          new Date(new Date().getTime() + hour * i++),
-          'yyyy-MM-dd HH:mm:ss',
-        );
+        time = new Date(new Date().getTime() + hour * i++).getTime();
         console.log({ title, time });
         // return { title, time };
         const createdContents = await this.chatService.createChatCompletion(
