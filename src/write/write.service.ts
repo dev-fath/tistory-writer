@@ -25,13 +25,13 @@ export class WriteService {
     );
     const hour = 1000 * 60 * 60;
 
-    let time = 0;
+    const time = 0;
 
-    let i = 0;
+    const i = 0;
 
     return await Promise.all(
       subjectList.map(async ({ title }) => {
-        time = new Date(new Date().getTime() + hour * i++).getTime();
+        // time = new Date(new Date().getTime() + hour * i++).getTime();
         console.log({ title, time });
         // return { title, time };
         const createdContents = await this.chatService.createChatCompletion(
