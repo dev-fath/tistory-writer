@@ -79,27 +79,13 @@ export class WriteService {
   }
 
   async createPostWithBard(title: string, category: CategoryType) {
-    const createdSubjects = await this.chatService.createSubject(title);
-
-    const subjectList: { title: string }[] = JSON.parse(
-      createdSubjects.content,
-    );
-    const hour = 1000 * 60 * 60;
-
-    const time = 0;
-
-    const i = 0;
-
     return await Promise.all(
-      subjectList.map(async ({ title }) => {
-        // time = new Date(new Date().getTime() + hour * i++).getTime();
-        console.log({ title, time });
-        // return { title, time };
+      [{ title }].map(async ({ title }) => {
         const createdContents = await this.chatService.createBardCompletion(
           title,
         );
 
-        if (!createdContents.content) {
+        if (!createdContents?.content) {
           return;
         }
         let imageTag = '';
@@ -132,7 +118,6 @@ export class WriteService {
           blogName: blogName ?? 'fathory',
           visibility: this.configService.get<number>('POST_VISIBLE'),
           category: CategoryEnum[category] ?? 0,
-          published: time,
           title: createdContents.title,
           tag: createdContents.tag,
           content: `${imageTag} ${createdContents.content}`,

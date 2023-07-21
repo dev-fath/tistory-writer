@@ -129,22 +129,25 @@ export class ChatService {
     const stdout = pythonProcess.stdout.toString();
     const stderr = pythonProcess.stderr.toString();
 
+    console.log(stdout);
     const [form, content] = stdout.split('-s-p-l-i-t-t-e-r-');
     if (stderr) {
       console.log({ stderr });
       // await this.createBardCompletion(prompt);
     }
 
-    const result = JSON.parse(form) as ChatResponseDTO;
-    result.content = content;
-
-    console.log(result);
     try {
+      console.log(form);
+      const result = JSON.parse(form) as ChatResponseDTO;
+      result.content = content;
+
+      console.log(result);
       return content
         ? result
         : { content: '', title: '', titleEn: '', tag: '' };
     } catch (e) {
       console.log(prompt);
+      console.log(form);
       // await this.createBardCompletion(prompt);
     }
   }
