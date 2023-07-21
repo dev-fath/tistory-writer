@@ -78,6 +78,71 @@ export class WriteService {
     );
   }
 
+  async createPostWithBard(title: string, category: CategoryType) {
+    const createdSubjects = await this.chatService.createSubject(title);
+
+    const subjectList: { title: string }[] = JSON.parse(
+      createdSubjects.content,
+    );
+    const hour = 1000 * 60 * 60;
+
+    const time = 0;
+
+    const i = 0;
+
+    return await Promise.all(
+      subjectList.map(async ({ title }) => {
+        // time = new Date(new Date().getTime() + hour * i++).getTime();
+        console.log({ title, time });
+        // return { title, time };
+        const createdContents = await this.chatService.createBardCompletion(
+          title,
+        );
+
+        if (!createdContents.content) {
+          return;
+        }
+        let imageTag = '';
+
+        if (createdContents.titleEn) {
+          try {
+            const createdImage = await this.drawService.createImage(
+              createdContents.titleEn,
+            );
+
+            const {
+              tistory: { url: imageUrl },
+            } = await this.attachFileByRemoteUrl(createdImage);
+
+            imageTag = `<img src="${imageUrl}" alt="title"/>`;
+          } catch (e) {
+            console.log(e);
+          }
+        }
+
+        const accessToken = this.configService.get<string>(
+          'TISTORY_ACCESS_TOKEN',
+        );
+
+        const blogName = this.configService.get<string>('TISTORY_BLOG_NAME');
+
+        const param = {
+          access_token: accessToken,
+          output: 'json',
+          blogName: blogName ?? 'fathory',
+          visibility: this.configService.get<number>('POST_VISIBLE'),
+          category: CategoryEnum[category] ?? 0,
+          published: time,
+          title: createdContents.title,
+          tag: createdContents.tag,
+          content: `${imageTag} ${createdContents.content}`,
+        };
+
+        await axios.post('https://www.tistory.com/apis/post/write', param);
+      }),
+    );
+  }
+
   async attachFileByRemoteUrl(url: string): Promise<AttachImageResponse> {
     const imageStream = await axios.get(url, { responseType: 'stream' });
     const response = await axios.postForm(

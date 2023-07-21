@@ -8,6 +8,7 @@ import {
 } from 'openai';
 import { TranslateService } from '../translate/translate.service';
 import fs from 'fs';
+import { spawnSync } from 'child_process';
 
 interface ChatResponseDTO {
   title: string;
@@ -18,7 +19,7 @@ interface ChatResponseDTO {
 
 @Injectable()
 export class ChatService {
-  private readonly GPT_MODEL = 'gpt-3.5-turbo-16k-0613';
+  private readonly GPT_MODEL = 'gpt-3.5-turbo-0613';
   private readonly logger = new Logger(ChatService.name);
   private openai: OpenAIApi;
   constructor(
@@ -40,13 +41,13 @@ export class ChatService {
       const translatedPrompt = await this.translateService.korean2English(
         prompt,
       );
-      const realPrompt = `Please write a blog post about ${translatedPrompt} in detail. title is "${prompt}". There should be made up with introduction, body that made up with 5 or 10 subtopics, conclusion. the post must be made up with more than 1500 words. If your response has any questions related to programming, your answer must have example code with <pre><code> tags. Please write a answer with a new line in the same format as "abc\\n" + "def"`;
+      const realPrompt = `Please write a blog post about ${translatedPrompt} in detail. title is "${prompt}". There should be made up with introduction, body that made up with some subtopics, conclusion. the post must be made up with more than 1000 words. If your response has any questions related to programming, your answer must have example code with <pre><code> tags.`;
 
       const messages: ChatCompletionRequestMessage[] = [
         { role: 'user', content: realPrompt, name: chatUserName },
         {
           role: 'system',
-          content: `Enter the answer to suit the following JSON format. {title: 제목, titleEn: "title in english", tag: 'comma로 구분된 10개의 키워드', content: 'Answers made up of search engine-optimized Semantic html'}`,
+          content: `Enter the answer to suit the following JSON format. {title: 제목, titleEn: "title in english", tag: 'comma로 구분된 키워드 10개', content: 'Answers made up of html. it must made in single line. if need new line, format as abc\\n + def. the answers are must korean'}`,
           name: 'system',
         },
       ];
@@ -57,11 +58,11 @@ export class ChatService {
         temperature: 0,
       });
 
-      messages.push(completion.data.choices[0].message, {
-        content: `답변을 다음 JSON 포맷에 맞도록 입력해줘. {title: 제목, titleEn: "title in english", tag: 'comma로 구분된 10개의 키워드', content: '검색엔진에 최적화된 html로 구성된 한글로 번역한 답변'}`,
-        role: 'user',
-        name: chatUserName,
-      });
+      // messages.push(completion.data.choices[0].message, {
+      //   content: `답변을 JSON 포맷으로 유지하면서 검색엔진에 최적화된 html로 구성된 한글로 번역해줘`,
+      //   role: 'user',
+      //   name: chatUserName,
+      // });
       const translated = await this.openai.createChatCompletion({
         messages: messages,
         // model: 'gpt-3.5-turbo-0613',
@@ -75,6 +76,8 @@ export class ChatService {
         title: prompt,
         content: translated.data.choices[0].message.content,
       };
+      console.log(translated.data.choices[0].message.content);
+
       try {
         contents = JSON.parse(translated.data.choices[0].message.content);
       } catch (e) {
@@ -115,6 +118,34 @@ export class ChatService {
       return completion.data.choices[0].message;
     } catch (error) {
       this.logger.error(error);
+    }
+  }
+
+  async createBardCompletion(prompt: string): Promise<ChatResponseDTO> {
+    const pythonProcess = spawnSync('python3', [
+      'src/python/bardAPI.py',
+      prompt,
+    ]);
+    const stdout = pythonProcess.stdout.toString();
+    const stderr = pythonProcess.stderr.toString();
+
+    const [form, content] = stdout.split('-s-p-l-i-t-t-e-r-');
+    if (stderr) {
+      console.log({ stderr });
+      // await this.createBardCompletion(prompt);
+    }
+
+    const result = JSON.parse(form) as ChatResponseDTO;
+    result.content = content;
+
+    console.log(result);
+    try {
+      return content
+        ? result
+        : { content: '', title: '', titleEn: '', tag: '' };
+    } catch (e) {
+      console.log(prompt);
+      // await this.createBardCompletion(prompt);
     }
   }
 }

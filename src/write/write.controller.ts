@@ -18,6 +18,14 @@ export class WriteController {
     await this.writeService.createPost(title, category);
   }
 
+  @Get('bard')
+  async createPostWithBard(
+    @Query('title') title: string,
+    @Query('category') category: CategoryType,
+  ) {
+    await this.writeService.createPostWithBard(title, category);
+  }
+
   @Get('/subject')
   async createSubjects(@Query('title') title: string) {
     await this.subjectService.createSubject(title);
